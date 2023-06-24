@@ -1,7 +1,9 @@
-import './globals.css'
-import { Inter } from 'next/font/google'
+// eslint-disable-next-line camelcase
+import { Noto_Sans_JP } from 'next/font/google'
 
-const inter = Inter({ subsets: ['latin'] })
+import "./globals.css";
+
+const notoSansJP = Noto_Sans_JP({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'Create Next App',
@@ -15,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={notoSansJP.className}>{children}</body>
     </html>
   )
 }
