@@ -2,33 +2,42 @@
 
 import { useEffect, useMemo, useState } from 'react'
 
+const SHAKE_THRESHOLD = 30; // m/s^2
+
 export default function Home() {
   const [acceleration, setAcceleration] = useState({ x: 0, y: 0, z: 0 });
   const [shakeCount, setShakeCount] = useState(0);
-  const [timeoutId, setTimeoutId] = useState<number | null>(null);
+  const [, setTimeoutId] = useState<number | null>(null);
   const [isPermissionGranted, setIsPermissionGranted] = useState(false);
 
   useEffect(() => {
     if(!isPermissionGranted) return;
+
     const listener = (event: DeviceMotionEvent) => {
       const { x, y, z } = event.acceleration || { x: 0, y: 0, z: 0};
-      if(Math.abs(x ?? 0) + Math.abs(y ?? 0) + Math.abs(z ?? 0) > 15) {
-        if(
-          Math.sign(x ?? 0) !== Math.sign(acceleration.x ?? 0)
-          || Math.sign(y ?? 0) !== Math.sign(acceleration.y ?? 0)
-          || Math.sign(z ?? 0) !== Math.sign(acceleration.z ?? 0)
-        ) {
-          setShakeCount(shakeCount + 1);
 
-          if(timeoutId) window.clearTimeout(timeoutId);
-          setTimeoutId(window.setTimeout(() => {
-            setShakeCount(0);
-            setTimeoutId(null);
-          }, 3000));
+      if (
+        Math.sqrt((x ?? 0) ** 2 + (y ?? 0) ** 2 + (z ?? 0) ** 2) > SHAKE_THRESHOLD
+      ) {
+        if(
+            Math.sign(x ?? 0) !== Math.sign(acceleration.x ?? 0)
+            || Math.sign(y ?? 0) !== Math.sign(acceleration.y ?? 0)
+            || Math.sign(z ?? 0) !== Math.sign(acceleration.z ?? 0)
+        ) {
+            setShakeCount(count => count + 1);
+
+            setTimeoutId((prevId) => {
+              if(prevId) window.clearTimeout(prevId);
+              return window.setTimeout(() => {
+                setShakeCount(0);
+                setTimeoutId(null);
+              }, 3000);
+          });
         }
-      }
-      setAcceleration({ x: x ?? 0, y: y ?? 0, z: z ?? 0 });
-    };
+        setAcceleration({ x: x ?? 0, y: y ?? 0, z: z ?? 0 });
+      };
+    }
+
     window.addEventListener("devicemotion", listener)
     return () => { window.removeEventListener("devicemotion", listener)}
   }, [isPermissionGranted]);
